@@ -203,8 +203,7 @@ static int heap_update_node(struct node_heap *heap, struct path_node *node)
 		ShowError("heap_update_node: node not found\n");
 		return 1;
 	}
-	BHEAP_POPINDEX(*heap, i, NODE_MINTOPCMP, swap_ptr);
-	BHEAP_PUSH(*heap, node, NODE_MINTOPCMP, swap_ptr);
+	BHEAP_UPDATE(*heap, i, NODE_MINTOPCMP, swap_ptr);
 	return 0;
 }
 

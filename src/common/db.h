@@ -1292,7 +1292,7 @@ void  linkdb_foreach( struct linkdb_node** head, LinkDBFunc func, ...  );
 /////////////////////////////////////////////////////////////////////
 // Binary heap library based on defines. (uses the vector defines above)
 // uses aMalloc, aRealloc, aFree
-
+// WARNING: BHEAP implementation details affect behaviour of A* pathfinding
 
 
 /// Declares an anonymous binary heap struct.
@@ -1418,6 +1418,7 @@ void  linkdb_foreach( struct linkdb_node** head, LinkDBFunc func, ...  );
 #define BHEAP_POP(__heap,__topcmp,__swp) BHEAP_POPINDEX(__heap,0,__topcmp,__swp)
 
 
+
 /// Removes the target value of the heap. (using the '=' operator)
 /// Assumes the index exists.
 ///
@@ -1461,6 +1462,74 @@ void  linkdb_foreach( struct linkdb_node** head, LinkDBFunc func, ...  );
 				_i_ = _rchild_; \
 			} \
 		} \
+	}while(0)
+
+
+
+/// Follow path up towards (but not all the way to) the root, swapping nodes until finding
+/// a place where the new item that was placed at __idx fits.
+/// Only goes as high as __startidx (usually 0).
+///
+/// @param __heap Binary heap
+/// @param __startidx Index of an ancestor of __idx
+/// @param __idx Index of an inserted element
+/// @param __topcmp Comparator
+/// @param __swp Swapper
+#define BHEAP_SIFTDOWN(__heap,__startidx,__idx,__topcmp,__swp)	\
+	do{ \
+		size_t _i2_ = __idx; \
+		while( _i2_ > __startidx ) \
+		{ /* restore heap property in parents */ \
+			size_t _parent_ = (_i2_-1)/2; \
+			if( __topcmp(VECTOR_INDEX(__heap,_parent_),VECTOR_INDEX(__heap,_i2_)) <= 0 ) \
+				break; /* done */ \
+			__swp(VECTOR_INDEX(__heap,_parent_),VECTOR_INDEX(__heap,_i2_)); \
+			_i2_ = _parent_; \
+		} \
+	}while(0)
+
+
+
+/// Repeatedly swap the smaller child with parent, after placing a new item at __idx.
+///
+/// @param __heap Binary heap
+/// @param __idx Index of an inserted element
+/// @param __topcmp Comparator
+/// @param __swp Swapper
+#define BHEAP_SIFTUP(__heap,__idx,__topcmp,__swp) \
+	do{ \
+		size_t _i_ = __idx; \
+		size_t _lchild_ = _i_*2 + 1; \
+		while( _lchild_ < VECTOR_LENGTH(__heap) ) \
+		{ /* restore heap property in childs */ \
+			size_t _rchild_ = _i_*2 + 2; \
+			if( _rchild_ >= VECTOR_LENGTH(__heap) || __topcmp(VECTOR_INDEX(__heap,_lchild_),VECTOR_INDEX(__heap,_rchild_)) < 0 ) \
+			{ /* left child */ \
+				__swp(VECTOR_INDEX(__heap,_i_),VECTOR_INDEX(__heap,_lchild_)); \
+				_i_ = _lchild_; \
+			} \
+			else \
+			{ /* right child */ \
+				__swp(VECTOR_INDEX(__heap,_i_),VECTOR_INDEX(__heap,_rchild_)); \
+				_i_ = _rchild_; \
+			} \
+			_lchild_ = _i_*2 + 1; \
+		} \
+		BHEAP_SIFTDOWN(__heap,__idx,_i_,__topcmp,__swp); \
+	}while(0)
+
+
+
+/// Call this after modifying the item at __idx__ to restore the heap
+///
+/// @param __heap Binary heap
+/// @param __idx Index
+/// @param __topcmp Comparator
+/// @param __swp Swapper
+#define BHEAP_UPDATE(__heap,__idx,__topcmp,__swp) \
+	do{ \
+		BHEAP_SIFTDOWN(__heap,0,__idx,__topcmp,__swp); \
+		BHEAP_SIFTUP(__heap,__idx,__topcmp,__swp); \
 	}while(0)
 
 
