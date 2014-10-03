@@ -1448,8 +1448,7 @@ void  linkdb_foreach( struct linkdb_node** head, LinkDBFunc func, ...  );
 		{ /* restore heap property in childs */ \
 			size_t _lchild_ = _i_*2 + 1; \
 			size_t _rchild_ = _i_*2 + 2; \
-			if( (_lchild_ >= VECTOR_LENGTH(__heap) || __topcmp(VECTOR_INDEX(__heap,_i_),VECTOR_INDEX(__heap,_lchild_)) <= 0) && \
-				(_rchild_ >= VECTOR_LENGTH(__heap) || __topcmp(VECTOR_INDEX(__heap,_i_),VECTOR_INDEX(__heap,_rchild_)) <= 0) ) \
+			if( _lchild_ >= VECTOR_LENGTH(__heap) ) \
 				break; /* done */ \
 			else if( _rchild_ >= VECTOR_LENGTH(__heap) || __topcmp(VECTOR_INDEX(__heap,_lchild_),VECTOR_INDEX(__heap,_rchild_)) < 0 ) \
 			{ /* left child */ \
